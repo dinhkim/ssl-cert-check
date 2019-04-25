@@ -768,8 +768,8 @@ check_file_status() {
         RETCODE_LOCAL=1
 
     # Verify certificate matches hostname
-    elif "${OPENSSL}" x509 -in "${CERTFILE}" -checkhost "${HOST}" | "${GREP}" -i "does NOT match certificate" > /dev/null ; then
-        prints "${HOST}" "${PORT}" "Not Match" "${CERTDATE}" "${CERTDIFF}" "${CERTISSUER}" "${COMMONNAME}" "${SERIAL}"
+    elif [ "${HOST}" != "FILE" ] && ("${OPENSSL}" x509 -in "${CERTFILE}" -checkhost "${HOST}" | "${GREP}" -i "does NOT match certificate" > /dev/null) ; then
+        prints "${HOST}" "${PORT}" "NotMatch" "" "" "${CERTISSUER}" "${COMMONNAME}" "${SERIAL}"
         RETCODE_LOCAL=1
     else
         prints "${HOST}" "${PORT}" "Valid" "${CERTDATE}" "${CERTDIFF}" "${CERTISSUER}" "${COMMONNAME}" "${SERIAL}"
@@ -792,7 +792,7 @@ do
         c) CERTFILE=${OPTARG};;
         d) CERTDIRECTORY=${OPTARG};;
         e) ADMIN=${OPTARG};;
-     E) SENDER=${OPTARG};;
+        E) SENDER=${OPTARG};;
         f) SERVERFILE=$OPTARG;;
         h) usage
            exit 1;;
