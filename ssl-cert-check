@@ -710,8 +710,14 @@ check_file_status() {
     ### Check to make sure the certificate file exists
     if [ ! -r "${CERTFILE}" ] || [ ! -s "${CERTFILE}" ]; then
         echo "ERROR: The file named ${CERTFILE} is unreadable or doesn't exist"
-        echo "ERROR: Please check to make sure the certificate for ${HOST}:${PORT} is valid"
         set_returncode 3
+        return
+    fi
+
+    ### Check to make sure the certificate file is valid
+    if (! "${OPENSSL}" x509 -in "${CERTFILE}" -text -noout &> /dev/null ) ; then
+        echo "ERROR: The file named ${CERTFILE} is not a valid certificate"
+         set_returncode 3
         return
     fi
 
@@ -725,20 +731,20 @@ check_file_status() {
     fi
 
     # Extract the expiration date from the ceriticate
-    CERTDATE=$("${OPENSSL}" x509 -in "${CERTFILE}" -enddate -noout -inform "${CERTTYPE}" | \
+    CERTDATE=$("${OPENSSL}" x509 -in "${CERTFILE}" -enddate -noout -inform "${CERTTYPE}" 2> /dev/null | \
                 "${SED}" 's/notAfter\=//')
 
     # Extract the issuer from the certificate
-    CERTISSUER=$("${OPENSSL}" x509 -in "${CERTFILE}" -issuer -noout -inform "${CERTTYPE}" | \
+    CERTISSUER=$("${OPENSSL}" x509 -in "${CERTFILE}" -issuer -noout -inform "${CERTTYPE}" 2> /dev/null | \
                     "${AWK}" 'BEGIN{RS="," }  /O =/ { print $3}')
 
     ### Grab the common name (CN) from the X.509 certificate
-    COMMONNAME=$("${OPENSSL}" x509 -in "${CERTFILE}" -subject -noout -inform "${CERTTYPE}" | \
+    COMMONNAME=$("${OPENSSL}" x509 -in "${CERTFILE}" -subject -noout -inform "${CERTTYPE}" 2> /dev/null | \
                     "${SED}" -e 's/.*CN=//' | \
                     "${SED}" -e 's/\/.*//')
 
     ### Grab the serial number from the X.509 certificate
-    SERIAL=$("${OPENSSL}" x509 -in "${CERTFILE}" -serial -noout -inform "${CERTTYPE}" | \
+    SERIAL=$("${OPENSSL}" x509 -in "${CERTFILE}" -serial -noout -inform "${CERTTYPE}" 2> /dev/null | \
                 "${SED}" -e 's/serial=//')
 
 
